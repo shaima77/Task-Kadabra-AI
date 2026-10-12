@@ -1,54 +1,56 @@
-# Diagnosis note
+# Diagnosis Note
+**AI Builder Task — Find the Best Data Source**
 
-*(Written before building. Demo need used throughout: **"recent customer reviews of
-coffee shops in a given city"** — a stand-in for the marketing need given at the start.)*
+*Originally written before building; updated to reflect what was actually delivered.*
 
-## Who the user is
-A marketer. They know the *outcome* they want ("what are people saying about coffee shops
-in Chicago?") but not where that data lives, which tool returns it, what inputs it needs, or
-what its output looks like. They will never read JSON, pick between two scrapers, or fill in a
-field called `startUrls`.
+### 1. User and Actual Need
+The target users are non-technical marketing professionals who know what information they want
+but do not know where or how to retrieve it.
 
-## What they say vs. what they actually need
-- **Say:** "I want reviews of coffee shops in Chicago."
-- **Need:** recent, readable reviews with ratings and text, from a source that (a) covers the
-  right *place* and *platform*, (b) can filter by *freshness*, and (c) returns *enough but not
-  a flood*. The decision hinges on dimensions they didn't state: which platform (Google vs
-  Yelp), how far back, and whether this is a one-off or a recurring pull.
+Their actual need is not simply to find an API, but to obtain relevant, reliable, and
+actionable data through an intuitive interface without dealing with technical complexity.
 
-## The real difficulty
-It is **not** the UI and **not** running a scraper. It is **choosing well and making the
-result usable**:
-1. **Discovery is a judgment call, not a search.** The marketplace has thousands of
-   overlapping tools. "Best" depends on the *specific* need — a globally-scoped scraper with a
-   great rating can still be the wrong answer if the user needs US-only, newest-first. The
-   agent must gather evidence (description, inputs, pricing, reputation) and defend a pick.
-2. **The chosen tool's inputs are technical and arbitrary.** Every source has a different,
-   jargon-filled input schema. Turning that into a 3-field form a marketer fills correctly —
-   with the right value shapes (e.g. a URL list of objects, not strings) — is where "no code"
-   is won or lost.
-3. **Raw output is unreadable.** Each source emits differently-shaped rows. They must become
-   cards with a title, rating, and link — tailored to *this* source's fields.
+### 2. Main Challenges
+The main challenge is translating natural-language requests into the user's actual data
+requirements, especially when requests are ambiguous or do not clearly match an available data
+source.
 
-## What I will build (a thin vertical slice, end-to-end, real)
-Describe → Clarify → live Search → Recommend (with reasons + honest alternatives) → a
-**generated** usage form → readable result cards. One full journey runs against **real** Apify
-sources via Apify's **MCP** server; Gemini supplies all judgment and language.
+Another challenge is selecting the most suitable source based on real evidence, rather than
+relying only on the LLM's assumptions, while ensuring reliable execution and meaningful results.
 
-- **Deterministic code** does what must be exact: all Apify (MCP) calls, input-schema parsing,
-  type coercion, result caps/timeouts, and validation of every LLM output against a schema.
-- **The LLM** does what needs judgment: which questions change the answer, which tool wins and
-  why, which input fields matter and their plain-language labels, and how to lay out results.
+### 3. Solution (as built)
+An end-to-end application consisting of a React frontend, a Python FastAPI backend, and a single
+Gemini-powered **autonomous agent** (built with LangGraph) integrated with **Apify through its
+hosted MCP server** — never the raw REST API, and never exposed to the browser.
 
-## What I will cut (on purpose)
-- No auth, accounts, billing, persistence (in-memory sessions), or multi-user concerns.
-- No recurring/scheduled pulls — I detect the intent in clarify but build the one-off path.
-- No exhaustive source coverage — one refinement loop, a capped shortlist, one source run.
-- No test-run-as-evidence during recommendation (cost/latency); I justify from description,
-  inputs, pricing, rating and usage, and note this as a deliberate trade-off.
+The agent uses a well-defined system prompt and a real tool-calling loop to search available
+sources, inspect the most promising candidates, compare them, and produce an evidence-based
+recommendation with honest alternatives. A lightweight **LLM-as-judge** first decides whether
+any clarifying question is even needed, and asks only when an answer would change the choice.
 
-## How I'll know it's good
-The clarify questions, the comparison, and the form must visibly change with the need — a
-different need produces different questions, a different winner, and a different form. And a
-non-technical person must be able to go from a sentence to real, readable rows without ever
-seeing a technical word.
+The system dynamically generates a user-friendly input form from the selected source's **actual
+input schema** and displays results in a readable card format.
+
+I implemented a **Deterministic Validator** for input/output structure, required fields, and
+real source ids/keys, alongside bounded **Retry, Timeout, and Fallback** mechanisms to handle
+failures and unsuitable sources. The agent's autonomy is held inside **hard guardrails** (a
+tool whitelist with no "run" tool, step/tool/search budgets, a wall-clock deadline, and a
+validated terminal action), and runs are cost-capped (return at the result cap, then abort).
+
+### 4. Scope and Trade-offs
+Given the two-hour constraint, I focused on one complete working flow with real Apify data.
+
+One scope decision changed during the build: I **added a small LLM-as-judge** for the clarify
+step, because it was cheap and directly improved the experience (no needless questions on
+already-specific requests).
+
+I deliberately excluded a **multi-agent architecture**, persistent storage / auth / billing,
+recurring or scheduled pulls, a live test-run as recommendation evidence, and observability
+tooling (e.g. LangSmith). Since the task is focused on a single domain, one agent with multiple
+tools is sufficient.
+
+### 5. Success Criteria
+Success means a non-technical user can describe a need, understand why a source was recommended,
+run it, and receive relevant, readable results without writing code.
+
+The system also handles invalid inputs, failed executions, and missing results gracefully.
