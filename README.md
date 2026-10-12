@@ -127,7 +127,6 @@ Then open **http://localhost:5173**.
 
 ---
 
-## What's real vs. faked
 
 **Real (end-to-end, no mocks):**
 - Source discovery, comparison and the recommendation — live Apify Store search + per-source
@@ -138,11 +137,7 @@ Then open **http://localhost:5173**.
   against e.g. *Google Maps Reviews Scraper* (20 live review cards) and *TikTok Video Search
   Scraper*.
 
-**Nothing is faked.** Deliberately **cut** (not faked — just out of scope), see `DIAGNOSIS.md`:
-sessions are in-memory (not a DB); no auth/billing; no recurring/scheduled pulls; bounded
-autonomous research (a couple of searches and a few inspections) rather than exhaustive
-coverage; recommendation evidence comes from each source's description, inputs, pricing and
-reputation rather than a live test-run (a cost/latency call we chose not to make).
+
 
 ## Key decisions
 
