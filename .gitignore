@@ -1,0 +1,31 @@
+# Secrets — never commit
+.env
+backend/.env
+*.env
+!*.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Task brief contains the provided API keys — never commit it
+AI Builder Task*.md
+# Local API probe artifacts
+act.json
+build.json

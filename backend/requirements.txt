@@ -1,0 +1,13 @@
+# Pinned to the versions this was built and tested against.
+# Note: Gemini 3.x ("thinking" models) require langchain-google-genai >= 4.x, which pulls
+# langchain-core 1.x, pydantic 2.14 and mcp 2.x — hence the modern pins below.
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+python-dotenv==1.0.1
+pydantic==2.14.1
+httpx==0.28.1
+sse-starlette==3.5.0
+langgraph==1.2.14
+langchain-core==1.6.10
+langchain-google-genai==4.4.1
+mcp==2.3.0
