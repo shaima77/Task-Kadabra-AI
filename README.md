@@ -229,9 +229,25 @@ scraper costs money — but keeps its own wait-clamp + poll budget and reports s
   display) as something to iterate on, not set once: tighten wording, add few-shot examples of
   good vs. bad behaviour, version them, and score each change against the eval harness and
   LangSmith traces so prompt tweaks are measured, not vibes.
-- **Eval harness (how I'd know it's good).** A fixed set of needs → assert the winner is
-  sensible, the form's required fields are present and bound to real keys, and a capped run
-  returns non-empty readable rows; track these across changes.
+### Evaluation process (how I'd know it's good)
+
+A repeatable suite run on every prompt/code change, so quality is measured, not vibed:
+
+1. **Golden set.** ~15-20 representative needs across categories (social, reviews, ads,
+   contacts, products, trends), each with expectations: should-clarify or not, a set of
+   acceptable source ids, and required form fields.
+2. **Deterministic stage checks** (cheap, pass/fail, no LLM):
+   - *Clarify judge* asks only when the golden need is ambiguous (precision/recall on ask-vs-skip).
+   - *Recommendation* names a real, non-deprecated source; reasons and alternatives are present.
+   - *Form* fields all bind to real schema keys; every required input is covered.
+   - *Run* returns non-empty, well-formed rows within the cap and time budget.
+3. **LLM-as-judge scoring** (offline, a stronger model) on the task's own 1-4 rubric:
+   recommendation reasoning grounded in gathered evidence, form usability, and result relevance.
+4. **Operational metrics** from LangSmith per run: tokens, $ cost, latency, tool-call count,
+   retry rate, and fallback rate (a rising fallback rate means the agent is failing silently).
+5. **Regression gate.** Compare scores *and* cost/latency against the last baseline; a change
+   ships only if quality holds or improves without a cost blow-up. A few cases are spot-checked
+   by hand each run.
 
 ## Layout
 ```
