@@ -45,7 +45,7 @@ step, because it was cheap and directly improved the experience (no needless que
 already-specific requests).
 
 I deliberately excluded a **multi-agent architecture**, persistent storage / auth / billing,
-recurring or scheduled pulls, a live test-run as recommendation evidence, and observability
+recurring or scheduled pulls, and observability
 tooling (e.g. LangSmith). Since the task is focused on a single domain, one agent with multiple
 tools is sufficient.
 
@@ -54,3 +54,28 @@ Success means a non-technical user can describe a need, understand why a source 
 run it, and receive relevant, readable results without writing code.
 
 The system also handles invalid inputs, failed executions, and missing results gracefully.
+
+### 6. With Another Week
+- **More reliable, cost-optimised flow:** cache source metadata/schemas, reuse one MCP session,
+  route cheap vs. strong models per step, estimate run cost before a scrape, and use real
+  test-runs of the top candidates as stronger evidence.
+- **Richer web UI:** editable clarify answers, save/compare recommendations, tweak-and-rerun,
+  result filtering/sorting and table↔card views, CSV export, and a run-cost meter.
+- **Observability (LangSmith):** trace tokens, latency, and tool calls per step to tune budgets
+  from data.
+- **More LLM-as-judge checks** (recommendation evidence, form fit, result quality) and a
+  benchmark of other agent setups (`create_react_agent`, planner/executor, multi-agent).
+- **Prompt iteration:** version each prompt, add few-shot good/bad examples, and score changes
+  against the eval suite.
+
+**Evaluation process (how I'd know it's good).** A repeatable suite run on every change:
+1. A **golden set** of ~15-20 needs across categories, each with expectations (should-clarify,
+   acceptable source ids, required form fields).
+2. **Deterministic checks:** the clarify judge asks only when ambiguous; the recommendation
+   names a real source with reasons; the form binds to real keys and covers required inputs; a
+   run returns well-formed rows within the cap and time budget.
+3. **LLM-as-judge scoring** on the task's 1-4 rubric: reasoning grounded in evidence, form
+   usability, result relevance.
+4. **Operational metrics** (via LangSmith): tokens, cost, latency, retry rate, fallback rate.
+5. A **regression gate** that ships a change only if quality holds or improves without a cost
+   blow-up, plus a few hand spot-checks.
